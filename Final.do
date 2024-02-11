@@ -15,6 +15,9 @@ gen invpp = sqinv/ent
 
 
 *sez_edu =================================================================
+
+
+* local variables 
 gen crimepc = crime/lpop
 gen c_mortality = c_death/birth
 gen dropout = med_edu_dropout + bas_edu_dropout
@@ -30,7 +33,10 @@ gen dinv = inv - l1.inv
 gen dent = ent - l1.ent
 gen ddrop = dropout - l1.dropout
 gen dlpop = lpop - l1.lpop
+gen dlcrimepc = lcrimepc - l1.lcrimepc
 
+
+* tests 
 ladder inv
 ladder crimepc
 ladder dropout
@@ -42,7 +48,7 @@ corr  sez ent l_inv c_mortality tec_salary
 corr  ent l_inv c_mortality tec_salary med_edu_dropout
 
 
-
+* models with non transformed variables 
 reg crimepc sez 
 reg crimepc sez ent
 reg crimepc ent l_inv 
@@ -54,8 +60,8 @@ reg crimepc ent l_inv c_mortality tec_salary dropout year i.id
 
 vif
 
+* 
 reg crimepc sez 
-
 reg crimepc ent l_inv 
 reg crimepc ent l_inv year 
 reg crimepc ent l_inv year i.id
@@ -69,34 +75,60 @@ reg crimepc ent l_inv lpop dropout year
 xtreg crimepc ent l_inv lpop dropout year,fe
 vif 
 
-reg lcrimepc ent l_inv lpop 
-reg lcrimepc ent l_inv lpop year 
-reg lcrimepc ent l_inv lpop year i.id
 
+reg lcrimepc sez 
+hettest
 
-reg lcrimepc sqent linv lpop sqdrop
-reg lcrimepc sqent linv lpop sqdrop year 
+reg lcrimepc ent linv
+reg lcrimepc ent linv  year 
+reg lcrimepc ent linv  year i.id
+
+* 2 positive one negative 
+reg lcrimepc sqent linv sqdrop
+reg lcrimepc sqent linv sqdrop year 
 
 xtset id year
-xtreg lcrimepc sqent linv lpop sqdrop, fe
+xtreg lcrimepc sqent linv sqdrop, fe
+* 
 
 
+scatter dcrimepc dent
+
+* significant 
 reg dcrimepc sez 
 reg dcrimepc dent 
-reg dcrimepc dent dinv dlpop ddrop  tec_salary
+reg dcrimepc dent dinv ddrop  tec_salary
 
 xtset id year
-reg dcrimepc dent dinv dlpop ddrop tec_salary year 
-xtreg dcrimepc dent dinv dlpop ddrop tec_salary,fe
+reg dcrimepc dent dinv ddrop tec_salary year 
+xtreg dcrimepc dent dinv ddrop tec_salary, fe
+* heteroscedastic 
+
+* not significant
+reg dlcrimepc sez 
+reg dlcrimepc dent 
+reg dlcrimepc dent dinv ddrop  tec_salary
+reg dlcrimepc dent dinv ddrop  tec_salary year
+xtreg dlcrimepc dent dinv ddrop  tec_salary year, fe
+hettest
+* homoscedastic 
+
+xtset id year
+reg dlcrimepc dent dinv dlpop ddrop tec_salary year 
+xtreg dlcrimepc dent dinv dlpop ddrop tec_salary,fe
 
 corr  dent dinv dlpop ddrop tec_salary
 *sez_edu =================================================================
+
+
+
+
 
 graph box lcrimepc, over(sez)
 
 graph twoway (lfit lcrimepc sqent) (scatter lcrimepc sqent)
 graph twoway (lfit lcrimepc op_salary) (scatter lcrimepc op_salary)
-graph twoway (lfit dcrimepc dent) (scatter dcrimepc dent)
+graph twoway (lfit dlcrimepc dent) (scatter dlcrimepc dent)
 
 
 
@@ -145,6 +177,25 @@ corr ntl inv tc ent
 *Data =================================================================
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+******* GUIDE **********************************************************************
 
 *****Constructing "Management Practice" variables
 *====Cleaning data
