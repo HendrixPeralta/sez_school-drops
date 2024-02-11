@@ -75,13 +75,16 @@ reg crimepc ent l_inv lpop dropout year
 xtreg crimepc ent l_inv lpop dropout year,fe
 vif 
 
-
-reg lcrimepc sez 
+* regression with dummy sez 
+reg lcrimepc sez year 
+xtreg lcrimepc sez, fe
 hettest
+**
 
-reg lcrimepc ent linv
-reg lcrimepc ent linv  year 
-reg lcrimepc ent linv  year i.id
+
+reg lcrimepc ent linv tec_salary year
+reg lcrimepc ent linv tec_salary year 
+xtreg lcrimepc ent linv  tec_salary year, fe
 
 * 2 positive one negative 
 reg lcrimepc sqent linv sqdrop
@@ -118,16 +121,61 @@ reg dlcrimepc dent dinv dlpop ddrop tec_salary year
 xtreg dlcrimepc dent dinv dlpop ddrop tec_salary,fe
 
 corr  dent dinv dlpop ddrop tec_salary
+
+
+
+
+* significant 
+reg dcrimepc sez 
+reg dcrimepc dent 
+reg dcrimepc dent dinv ddrop  tec_salary
+
+xtset id year
+reg dlcrimepc dent dinv ddrop tec_salary 
+
+reg lcrimepc sez 
+reg lcrimepc sez year
+xtreg lcrimepc sez year, fe
+
+reg crimepc ent inv dropout tec_salary
+reg crimepc ent inv dropout tec_salary year 
+xtreg crimepc ent inv dropout tec_salary year, fe
+
+reg dlcrimepc dent dinv dlpop ddrop tec_salary 
+
+hettest
+
+
+
+
+** test dropout 
+reg sqdrop sez 
+reg sqdrop sez year
+xtreg sqdrop sez year, fe
+
+
+reg  sqdrop  ent 
+reg  sqdrop  ent  year
+xtreg sqdrop ent year, fe
+
+reg sqdrop  ent inv  tec_salary lcrimepc
+reg dropout  ent inv tec_salary lcrimepc  year 
+xtreg dropout  ent inv  tec_salary lcrimepc year, fe
+
+reg ddrop dlcrimepc dent dinv dlpop  tec_salary 
+graph box sqdrop, over(sez)
+graph twoway (lfit sqdrop ent) (scatter sqdrop ent)
 *sez_edu =================================================================
 
 
 
-
+reg dlcrimepc tec_salary
+hettest
 
 graph box lcrimepc, over(sez)
 
-graph twoway (lfit lcrimepc sqent) (scatter lcrimepc sqent)
-graph twoway (lfit lcrimepc op_salary) (scatter lcrimepc op_salary)
+graph twoway (lfit crimepc sqent) (scatter crimepc sqent)
+graph twoway (lfit lcrimepc tec_salary) (scatter lcrimepc tec_salary)
 graph twoway (lfit dlcrimepc dent) (scatter dlcrimepc dent)
 
 
