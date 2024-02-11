@@ -1,8 +1,149 @@
 
 
-cd "/Users/hendrixperalta/Downloads/NU 202304/Fall/Industrial Development/HW Lecture 4"
+cd "/Users/hendrixperalta/Downloads/NU 202304/Fall/Industrial Development/Final Industrial Development"
 
-use "Netherlands-2020-full-data.dta", clear
+*insheet using "data.csv", comma clear
+insheet using "sez_edu.csv", comma clear
+
+gen sez = 0
+replace sez = 1 if ent > 0
+ 
+gen lpop = ln(pop)
+gen sqinv = sqrt(inv)
+gen invpp = sqinv/ent
+
+
+
+*sez_edu =================================================================
+gen crimepc = crime/lpop
+gen c_mortality = c_death/birth
+gen dropout = med_edu_dropout + bas_edu_dropout
+gen lcrimepc = ln(crimepc)
+gen sqdrop = sqrt(dropout)
+gen sqent = sqrt(ent)
+gen sqinv = sqrt(inv)
+gen inv1 = inv/1000000
+gen linv = ln(inv)
+*gen lc_mort = ln(c_mortality)
+gen dcrimepc = crimepc - l1.crimepc
+gen dinv = inv - l1.inv
+gen dent = ent - l1.ent
+gen ddrop = dropout - l1.dropout
+gen dlpop = lpop - l1.lpop
+
+ladder inv
+ladder crimepc
+ladder dropout
+ladder tec_salary
+ladder ent 
+ladder c_mortality
+
+corr  sez ent l_inv c_mortality tec_salary
+corr  ent l_inv c_mortality tec_salary med_edu_dropout
+
+
+
+reg crimepc sez 
+reg crimepc sez ent
+reg crimepc ent l_inv 
+reg crimepc ent l_inv c_mortality
+reg crimepc ent l_inv c_mortality tec_salary 
+reg crimepc ent l_inv c_mortality tec_salary dropout  
+reg crimepc ent l_inv c_mortality tec_salary dropout year i.id
+
+
+vif
+
+reg crimepc sez 
+
+reg crimepc ent l_inv 
+reg crimepc ent l_inv year 
+reg crimepc ent l_inv year i.id
+
+reg crimepc ent l_inv lpop 
+reg crimepc ent l_inv lpop year 
+reg crimepc ent l_inv lpop year i.id
+
+reg crimepc ent l_inv lpop dropout
+reg crimepc ent l_inv lpop dropout year 
+xtreg crimepc ent l_inv lpop dropout year,fe
+vif 
+
+reg lcrimepc ent l_inv lpop 
+reg lcrimepc ent l_inv lpop year 
+reg lcrimepc ent l_inv lpop year i.id
+
+
+reg lcrimepc sqent linv lpop sqdrop
+reg lcrimepc sqent linv lpop sqdrop year 
+
+xtset id year
+xtreg lcrimepc sqent linv lpop sqdrop, fe
+
+
+reg dcrimepc sez 
+reg dcrimepc dent 
+reg dcrimepc dent dinv dlpop ddrop  tec_salary
+
+xtset id year
+reg dcrimepc dent dinv dlpop ddrop tec_salary year 
+xtreg dcrimepc dent dinv dlpop ddrop tec_salary,fe
+
+corr  dent dinv dlpop ddrop tec_salary
+*sez_edu =================================================================
+
+graph box lcrimepc, over(sez)
+
+graph twoway (lfit lcrimepc sqent) (scatter lcrimepc sqent)
+graph twoway (lfit lcrimepc op_salary) (scatter lcrimepc op_salary)
+graph twoway (lfit dcrimepc dent) (scatter dcrimepc dent)
+
+
+
+
+
+*Data =================================================================
+ladder pop
+ladder inv
+ladder op
+ladder ent
+
+
+drop if sez == 0 
+
+reg ntl sez 
+reg ntl sez pop
+reg ntl sez pop sqinv 
+reg ntl sez pop sqinv ent  
+reg ntl sez pop sqinv ent  op 
+reg ntl sez pop sqinv ent  op tc
+
+
+reg ntl sez year 
+reg ntl sez pop year
+reg ntl sez pop sqinv year 
+reg ntl sez pop sqinv ent year  
+reg ntl sez pop sqinv ent  op year
+reg ntl sez pop sqinv ent  op tc year
+
+reg ntl sez year 
+reg ntl sez sqinv year 
+reg ntl sez sqinv tc  year 
+
+
+
+corr ntl sez sqinv tc op pop
+
+corr ntl sez sqinv tc op lpop ent 
+
+
+reg ntl sqinv tc ent
+vif 
+
+corr ntl inv tc ent
+
+*Data =================================================================
+
 
 
 *****Constructing "Management Practice" variables
