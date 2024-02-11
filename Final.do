@@ -133,13 +133,24 @@ reg dcrimepc dent dinv ddrop  tec_salary
 xtset id year
 reg dlcrimepc dent dinv ddrop tec_salary 
 
-reg lcrimepc sez 
-reg lcrimepc sez year
-xtreg lcrimepc sez year, fe
+reg crimepc sez 
+estimates store model1
+reg crimepc sez year
+estimates store model2
+xtreg crimepc sez  year, fe
+estimates store model3
 
-reg crimepc ent inv dropout tec_salary
-reg crimepc ent inv dropout tec_salary year 
-xtreg crimepc ent inv dropout tec_salary year, fe
+esttab model1 model2 model3, title(Crime - SEZ)
+
+
+reg crimepc ent inv tec_salary
+estimates store model4
+reg crimepc ent inv tec_salary year 
+estimates store model5
+xtreg crimepc ent inv tec_salary year, fe
+estimates store model6
+
+esttab model4 model5 model6, title(Crime - ent)
 
 reg dlcrimepc dent dinv dlpop ddrop tec_salary 
 
@@ -172,14 +183,25 @@ graph twoway (lfit sqdrop ent) (scatter sqdrop ent)
 reg dlcrimepc tec_salary
 hettest
 
-graph box lcrimepc, over(sez)
+graph box crimepc, over(sez) 
 
 graph twoway (lfit crimepc sqent) (scatter crimepc sqent)
 graph twoway (lfit lcrimepc tec_salary) (scatter lcrimepc tec_salary)
 graph twoway (lfit dlcrimepc dent) (scatter dlcrimepc dent)
 
 
+***** final graphs 
 
+graph box lcrimepc, over(sez) label 
+    legend(off) 
+    title("Box Plot of Crimepc by Sez") 
+    ytitle("Crimepc") 
+    xlabel(0 "Sez = 0" 1 "NO = 1") 
+    note("Sez = 1 indicates sez") 
+    noteangle(0)
+	
+	
+	
 
 
 *Data =================================================================
