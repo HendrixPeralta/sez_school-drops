@@ -7,11 +7,12 @@ insheet using "sez_edu.csv", comma clear
 
 gen sez = 0
 replace sez = 1 if ent > 0
- 
-gen lpop = ln(pop)
-gen sqinv = sqrt(inv)
-gen invpp = sqinv/ent
 
+gen pop1 = pop/100000 
+gen lpop = ln(pop)
+
+
+xtset id year
 
 
 *sez_edu =================================================================
@@ -25,8 +26,10 @@ gen lcrimepc = ln(crimepc)
 gen sqdrop = sqrt(dropout)
 gen sqent = sqrt(ent)
 gen sqinv = sqrt(inv)
-gen inv1 = inv/1000000
+gen invpp = sqinv/ent
+gen inv1 = inv/10000000
 gen linv = ln(inv)
+gen tec_salary1 = tec_salary/1000
 *gen lc_mort = ln(c_mortality)
 gen dcrimepc = crimepc - l1.crimepc
 gen dinv = inv - l1.inv
@@ -34,6 +37,7 @@ gen dent = ent - l1.ent
 gen ddrop = dropout - l1.dropout
 gen dlpop = lpop - l1.lpop
 gen dlcrimepc = lcrimepc - l1.lcrimepc
+gen dtec_salary = tec_salary - l1.tec_salary
 
 
 * tests 
@@ -110,9 +114,9 @@ xtreg dcrimepc dent dinv ddrop tec_salary, fe
 * not significant
 reg dlcrimepc sez 
 reg dlcrimepc dent 
-reg dlcrimepc dent dinv ddrop  tec_salary
-reg dlcrimepc dent dinv ddrop  tec_salary year
-xtreg dlcrimepc dent dinv ddrop  tec_salary year, fe
+reg dlcrimepc dent dinv tec_salary
+reg dlcrimepc dent dinv  tec_salary year
+xtreg dlcrimepc dent dinv tec_salary year, fe
 hettest
 * homoscedastic 
 
@@ -130,32 +134,85 @@ reg dcrimepc sez
 reg dcrimepc dent 
 reg dcrimepc dent dinv ddrop  tec_salary
 
-xtset id year
+
 reg dlcrimepc dent dinv ddrop tec_salary 
 
-reg crimepc sez 
-estimates store model1
-reg crimepc sez year
-estimates store model2
-xtreg crimepc sez  year, fe
-estimates store model3
-
-esttab model1 model2 model3, title(Crime - SEZ)
 
 
-reg crimepc ent inv tec_salary
+eststo mod1: quietly reg crimepc sez 
+quietly estadd local FE_province  "No", replace
+quietly estadd local FE_year      "No", replace
+
+eststo mod2: quietly reg crimepc sez year
+quietly estadd local FE_province  "No", replace
+quietly estadd local FE_year      "Yes", replace
+
+eststo mod3: quietly xtreg crimepc sez  year, fe
+quietly estadd local FE_province  "Yes", replace
+quietly estadd local FE_year      "Yes", replace
+
+esttab mod1 mod2 mod3 using "crime_sez.tex", replace ///
+    keep(sez) ///
+    se label stats(N N_g r2 FE_province FE_year, fmt(0 0 2) label("Observations" "N Provinces" "R-squared" "Province FE" "Year FE")) ///
+    mtitles("OLS" "1-FE" "2-FE") nonotes ///
+    addnote("Notes: The dependent variable is the homicides per capita." ///
+            "All models include a constant" ///
+            "$* p<0.10, ** p<0.05, *** p<0.01") star(* 0.10 ** 0.05 *** 0.01) b(%7.3f) compress
+
+
+
+*estimates store model2
+
+*estimates store model3
+
+*esttab model1 model2 model3, title(Crime - SEZ)
+
+
+eststo mod4: quietly reg crimepc ent inv1 tec_salary1
+quietly estadd local FE_province  "No", replace
+quietly estadd local FE_year      "No", replace
+
+eststo mod5: quietly reg crimepc ent inv1 tec_salary1 year 
+quietly estadd local FE_province  "No", replace
+quietly estadd local FE_year      "Yes", replace
+
+eststo mod6: quietly xtreg crimepc ent inv1 tec_salary1 year, fe
+quietly estadd local FE_province  "Yes", replace
+quietly estadd local FE_year      "Yes", replace
+
+esttab mod4 mod5 mod6, title(Crime - ent)	
+
+esttab mod4 mod5 mod6 using "crime_ent.tex", replace ///
+    keep(ent inv1 tec_salary1) ///
+    se label stats(N N_g r2 FE_province FE_year, fmt(0 0 2) label("Observations" "N Provinces" "R-squared" "Province FE" "Year FE")) ///
+    mtitles("OLS" "1-FE" "2-FE") nonotes ///
+    addnote("Notes: The dependent variable is the homicides per capita." ///
+            "All models include a constant" ///
+            "$* p<0.10, ** p<0.05, *** p<0.01") star(* 0.10 ** 0.05 *** 0.01) b(%7.3f) compress
+
+
+reg dcrimepc sez
 estimates store model4
-reg crimepc ent inv tec_salary year 
+hettest
+reg dcrimepc sez year 
 estimates store model5
-xtreg crimepc ent inv tec_salary year, fe
+xtreg dcrimepc sez year, fe
+estimates store model6
+
+esttab model4 model5 model6, title(Crime - ent)			
+			
+			
+reg dcrimepc dent dinv dtec_salary
+estimates store model4
+hettest
+reg dcrimepc dent dinv dtec_salary year 
+estimates store model5
+xtreg dcrimepc dent dinv dtec_salary year, fe
 estimates store model6
 
 esttab model4 model5 model6, title(Crime - ent)
 
-reg dlcrimepc dent dinv dlpop ddrop tec_salary 
-
-hettest
-
+reg crimepc ent inv tec_salary 
 
 
 
@@ -185,7 +242,7 @@ hettest
 
 graph box crimepc, over(sez) 
 
-graph twoway (lfit crimepc sqent) (scatter crimepc sqent)
+graph twoway (lfit crimepc ent) (scatter crimepc ent)
 graph twoway (lfit lcrimepc tec_salary) (scatter lcrimepc tec_salary)
 graph twoway (lfit dlcrimepc dent) (scatter dlcrimepc dent)
 
