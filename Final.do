@@ -202,7 +202,7 @@ estimates store model6
 esttab model4 model5 model6, title(Crime - ent)			
 			
 			
-reg dcrimepc dent dinv dtec_salary
+reg dcrimepc ent inv tec_salary
 estimates store model4
 hettest
 reg dcrimepc dent dinv dtec_salary year 
